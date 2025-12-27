@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/PlanetRenderer.dir/src/main.cpp.o CMakeFiles/PlanetRenderer.dir/src/utility.cpp.o -o ../working_dir/PlanetRenderer  ext/glfw/src/libglfw3.a ext/glad/libglad.a ext/stb_image/libstb_image.a ext/glm/glm/libglm.a -lX11 /usr/lib/x86_64-linux-gnu/librt.a -lm -ldl /usr/lib/x86_64-linux-gnu/libGLX.so /usr/lib/x86_64-linux-gnu/libOpenGL.so 
