@@ -43,7 +43,10 @@ struct GLState
     glm::vec3 up    = glm::vec3(0.0f, 1.0f, 0.0f);
     // Render mode
     uint32_t mode = 2;
-
+    bool leftMousePressed = false;
+    double lastMouseX = 0.0;
+    double lastMouseY = 0.0;
+    bool keyPressed[1024] = {false};
     // Constructors, Movement & Destructor
                 GLState(const char* const windowName,
                         int width, int height,

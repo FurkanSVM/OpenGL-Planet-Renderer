@@ -41,6 +41,7 @@ out gl_PerVertex {vec4 gl_Position;};
 // fragment positions
 out OUT_UV		vec2 fUV;
 out OUT_NORMAL	vec3 fNormal;
+out vec3 fWorldPos; // World space position for shadow mapping
 
 // Uniforms
 U_TRANSFORM_MODEL	uniform mat4 uModel;
@@ -52,7 +53,11 @@ void main(void)
 {
 	fUV = vUV;
 	fNormal = normalize(uNormalMatrix * vNormal);
-	fNormal = vNormal;
+	
+	// Calculate world position
+	vec4 worldPos = uModel * vec4(vPos.xyz, 1.0f);
+	fWorldPos = worldPos.xyz;
+	
 	// Rasterizer
-	gl_Position = uProjection * uView * uModel * vec4(vPos.xyz, 1.0f);
+	gl_Position = uProjection * uView * worldPos;
 }
