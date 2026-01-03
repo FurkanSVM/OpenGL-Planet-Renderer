@@ -108,7 +108,9 @@ void main(void)
 			// Ambient + Diffuse + Specular with shadow
 			float ambient = 0.05;
 			vec3 diffuseColor = albedo * diff * shadow;
-			vec3 specularColor = vec3(0.3) * spec * shadow;
+			// Specular rengi yüzey renginden etkilensin (daha renkli)
+			vec3 specularTint = albedo * 0.7 + vec3(0.3); // %70 yüzey rengi, %30 beyaz katkı
+			vec3 specularColor = specularTint * 0.4 * spec * shadow;
 			vec3 ambientColor = albedo * ambient;
 			
 			vec3 color = ambientColor + diffuseColor + specularColor;
@@ -120,32 +122,56 @@ void main(void)
 			float shadow = calculateShadow();
 			vec3 lightDir = normalize(uLightDir);
 			vec3 viewDir = normalize(uViewDir);
-			vec3 albedo = texture(uAlbedoMap, fUV).rgb;
-			float specMap = texture(uSpecularMap, fUV).r;
-			float night = texture(uNightMap, fUV).r;
-			float waterSpec = 64.0;
-			float groundSpec = 8.0;
-			float specPower = mix(groundSpec, waterSpec, specMap);
 			vec3 N = normalize(fNormal);
-			float diff = max(dot(N, lightDir), 0.0);
-			vec3 reflectDir = reflect(-lightDir, fNormal);
-			float spec = pow(max(dot(viewDir, reflectDir), 0.0), specPower);
+			
+			// Texture sampling
+			vec3 albedo = texture(uAlbedoMap, fUV).rgb;
+			float specMap = texture(uSpecularMap, fUV).r; // 1 = water (high spec), 0 = ground (low spec)
+			vec3 nightLights = texture(uNightMap, fUV).rgb; // RGB for colored city lights
+			
+			// Specular power interpolation: water has high specularity, ground has low
+			float waterSpec = 60.0;
+			float groundSpec = 25.0;
+			float specPower = mix(groundSpec, waterSpec, specMap);
+			
+			// Diffuse term
+			float NdotL = dot(N, lightDir);
+			float diff = max(NdotL, 0.0);
+			
+			// Specular term (Blinn-Phong)
+			vec3 halfDir = normalize(lightDir + viewDir);
+			float spec = pow(max(dot(N, halfDir), 0.0), specPower) * specMap; // Water gets more specular
 			
 			// Apply shadow to diffuse and specular
 			float shadowedDiff = diff * shadow;
 			float shadowedSpec = spec * shadow;
 			
-			// Night map katkısını sadece tam geceye yakın bölgede uygula
-			float nightStart = 0.08;
-			float nightEnd = 0.45;
-			// Shadow'da iken de night map görünsün
-			float effectiveDiff = shadow < 0.5 ? 0.0 : shadowedDiff;
-			float nightFactor = 1.0 - smoothstep(nightStart, nightEnd, effectiveDiff);
-			nightFactor = clamp(nightFactor, 0.0, 1.0);
-			vec3 dayColor = albedo * shadowedDiff + shadowedSpec * vec3(1.0);
-			vec3 color = mix(dayColor, night * vec3(1.0), nightFactor);
-			// Tamamen gündüzde ve gölge dışında night katkısı olmasın
-			if (effectiveDiff > nightEnd + 0.05) color = dayColor;
+			// Night lights visibility: smooth transition based on how dark the surface is
+			// NdotL ranges from -1 (full night) to 1 (full day)
+			// We want night lights visible when NdotL < some threshold
+			float nightTerminator = 0.1; // Where day/night transition happens
+			float nightSoftness = 0.3;   // How soft the transition is
+			float nightFactor = 1.0 - smoothstep(-nightSoftness, nightTerminator, NdotL);
+			
+			// In shadow (eclipse), also show night lights
+			if (shadow < 0.5 && diff > 0.1) {
+				nightFactor = max(nightFactor, 0.8); // Show night lights in eclipse shadow
+			}
+			
+			// Ambient term (very subtle, so night side isn't pure black)
+			float ambient = 0.02;
+			
+			// Day color: ambient + diffuse + specular
+			// Specular rengi yüzey renginden etkilensin (su için biraz daha beyaz, toprak için daha renkli)
+			vec3 specularTint = albedo * (0.8 - specMap * 0.3) + vec3(0.2 + specMap * 0.3); // Toprak=%80 renkli, Su=%50 renkli
+			vec3 dayColor = albedo * ambient + albedo * shadowedDiff + specularTint * shadowedSpec;
+			
+			// Night color: city lights
+			vec3 nightColor = nightLights * 1.2; // Boost night lights slightly
+			
+			// Blend day and night
+			vec3 color = mix(dayColor, dayColor + nightColor, nightFactor);
+			
 			fboColor = vec4(color, 1.0);
 			break;
 		}

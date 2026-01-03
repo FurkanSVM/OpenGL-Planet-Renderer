@@ -290,7 +290,8 @@ int main(int argc, const char* argv[])
         // --- DİNAMİK LIGHT DIRECTION ---
         float sunOrbitSpeed = 0.2f; // yavaş dönsün
         float sunAngle = time * sunOrbitSpeed;
-        glm::vec3 lightDir = glm::normalize(glm::vec3(cos(sunAngle), 0.5f, sin(sunAngle)));
+        // Y=0 ile ışık yatay gelir, gölge ortada olur
+        glm::vec3 lightDir = glm::normalize(glm::vec3(cos(sunAngle), 0.0f, sin(sunAngle)));
 
         // ===================== //
         //     SHADOW PASS       //
