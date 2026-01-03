@@ -5,11 +5,11 @@
 
 #include <GLFW/glfw3.h>
 
-#include <glm/ext.hpp> // for matrix calculation
+#include <glm/ext.hpp>
 
 
-glm::vec3 cameraOffset(0.0f, 2.5f, 5.0f); // Başlangıç offset'i
-float timeSpeed = 1.0f; // Zaman hızı çarpanı (L/K ile değişir)
+glm::vec3 cameraOffset(0.0f, 2.5f, 5.0f); 
+float timeSpeed = 1.0f; 
 
 void MouseMoveCallback(GLFWwindow* wnd, double x, double y)
 {
@@ -33,12 +33,12 @@ void MouseMoveCallback(GLFWwindow* wnd, double x, double y)
     dy *= sensitivity;
 
     if(state->mode >= 0 && state->mode <= 2) {
-        // Gezegen modunda offset'i döndür
+        // Gezegen modu
         glm::mat4 yaw   = glm::rotate(glm::mat4(1.0f), -dx, glm::vec3(0,1,0));
         glm::mat4 pitch = glm::rotate(glm::mat4(1.0f), -dy, glm::vec3(1,0,0));
         cameraOffset = glm::vec3(yaw * pitch * glm::vec4(cameraOffset, 1.0f));
     } else {
-        // FPS modunda eski davranış
+        // FPS modu
         glm::vec3 forward = glm::normalize(state->gaze - state->pos);
         glm::vec3 right   = glm::normalize(glm::cross(forward, state->up));
         // yaw
@@ -66,14 +66,14 @@ void MouseScrollCallback(GLFWwindow* wnd, double dx, double dy)
 {
     GLState* state = static_cast<GLState*>(glfwGetWindowUserPointer(wnd));
     if(state->mode >= 0 && state->mode <= 2) {
-        // Gezegen modunda offset'in uzunluğunu değiştir (zoom)
+      
         float zoomSpeed = 0.5f;
         float len = glm::length(cameraOffset);
         len -= static_cast<float>(dy) * zoomSpeed;
         len = glm::clamp(len, 1.0f, 50.0f); // min/max zoom
         cameraOffset = glm::normalize(cameraOffset) * len;
     } else {
-        // FPS modunda mevcut davranış
+        // FPS modu
         glm::vec3 forward = glm::normalize(state->gaze - state->pos);
         state->pos += static_cast<float>(dy) * 0.1f * forward;
     }
@@ -92,7 +92,7 @@ void KeyboardCallback(GLFWwindow* wnd, int key, int scancode, int action, int mo
     GLState* state = static_cast<GLState*>(glfwGetWindowUserPointer(wnd));
     uint32_t mode = state->mode;
 
-    // Tuş basılı mı, bırakıldı mı takip et
+   
     if(key >= 0 && key < 1024) {
         if(action == GLFW_PRESS)
             state->keyPressed[key] = true;
@@ -105,32 +105,32 @@ void KeyboardCallback(GLFWwindow* wnd, int key, int scancode, int action, int mo
     if(key == GLFW_KEY_P) mode = (mode == 3) ? 0 : (mode + 1);
     if(key == GLFW_KEY_O) mode = (mode == 0) ? 3 : (mode - 1);
     
-    // L: Zamanı hızlandır
+    // L: accelerate time 
     if(key == GLFW_KEY_L) {
         timeSpeed += 0.25f;
-        if(timeSpeed > 3.0f) timeSpeed = 3.0f; // Maksimum hız
+        if(timeSpeed > 3.0f) timeSpeed = 3.0f; // max sped
     }
-    // K: Zamanı yavaşlat (ardarda basınca geri gider)
+    // K: decrease time 
     if(key == GLFW_KEY_K) {
         timeSpeed -= 0.25f;
-        if(timeSpeed < -3.0f) timeSpeed = -3.0f; // Minimum (geri) hız
+        if(timeSpeed < -3.0f) timeSpeed = -3.0f; // min speed
     }
 
     state->mode = mode;
     
 }
 
-// --- Planet struct ve gezegen dizisi ---
+
 #include <vector>
 struct Planet {
-    float orbitRadius;      // Yörünge yarıçapı
-    float orbitSpeed;       // Yörünge açısal hızı
-    float selfSpeed;        // Kendi etrafında dönme hızı
-    float radius;           // Gezegen yarıçapı (çizim için ölçek)
-    glm::vec3 color;        // (şimdilik kullanılmıyor)
-    TextureGL* texture;     // Texture pointer
-    int parentIndex;        // Bağlı olduğu gezegenin indexi (-1 ise merkez)
-    float orbitPhase;       // Başlangıç fazı
+    float orbitRadius;    
+    float orbitSpeed;       
+    float selfSpeed;      
+    float radius;           
+    glm::vec3 color;       
+    TextureGL* texture;   
+    int parentIndex;      
+    float orbitPhase;       
 };
 
 int main(int argc, const char* argv[])
@@ -146,13 +146,13 @@ int main(int argc, const char* argv[])
     TextureGL texEarth = TextureGL("../working_dir/textures/2k_earth_daymap.jpg", TextureGL::LINEAR, TextureGL::REPEAT);
     TextureGL texMoon = TextureGL("../working_dir/textures/2k_moon.jpg", TextureGL::LINEAR, TextureGL::REPEAT);
     TextureGL texMoonMoon = TextureGL("../working_dir/textures/2k_jupiter.jpg", TextureGL::LINEAR, TextureGL::REPEAT); // örnek
-    // --- PART 2.2: Earth Shading Effects ---
+ 
     TextureGL texEarthSpecular("../working_dir/textures/2k_earth_specular_map.png", TextureGL::LINEAR, TextureGL::REPEAT);
     TextureGL texEarthNight("../working_dir/textures/2k_earth_nightmap_alpha.png", TextureGL::LINEAR, TextureGL::REPEAT);
     TextureGL texEarthClouds("../working_dir/textures/2k_earth_clouds_alpha.png", TextureGL::LINEAR, TextureGL::REPEAT);
-    // --- Background and Sun Textures ---
+    
     TextureGL texStars("../working_dir/textures/8k_stars_milky_way.jpg", TextureGL::LINEAR, TextureGL::REPEAT);
-    // Güneş için basit bir sarı sphere kullanılacak, texture gerekirse eklenir
+
     auto orthoProj = [](float size, float aspect, float near, float far) {
         float w = size * aspect;
         float h = size;
@@ -165,15 +165,13 @@ int main(int argc, const char* argv[])
     glSamplerParameteri(samplerLinear, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glSamplerParameteri(samplerLinear, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
-    // =============== //
-    // SHADOW MAP FBO  //
-    // =============== //
+    // shadow map
     const int SHADOW_MAP_SIZE = 2048;
     GLuint shadowFBO;
     GLuint shadowColorTex;
     GLuint shadowDepthTex;
     
-    // Create shadow map color texture (32-bit float, single channel)
+   
     glGenTextures(1, &shadowColorTex);
     glBindTexture(GL_TEXTURE_2D, shadowColorTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 0, GL_RED, GL_FLOAT, nullptr);
@@ -182,7 +180,7 @@ int main(int argc, const char* argv[])
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
-    // Create shadow map depth texture
+    
     glGenTextures(1, &shadowDepthTex);
     glBindTexture(GL_TEXTURE_2D, shadowDepthTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
@@ -191,26 +189,26 @@ int main(int argc, const char* argv[])
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
-    // Create framebuffer
+   
     glGenFramebuffers(1, &shadowFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadowColorTex, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTex, 0);
     
-    // Check FBO status
+
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         printf("Shadow FBO is not complete!\n");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    
-    // Shadow pipeline
+
+
     GLuint shadowPipeline;
     glGenProgramPipelines(1, &shadowPipeline);
     glBindProgramPipeline(shadowPipeline);
     
-    // Gezegenleri oluştur
+    
     std::vector<Planet> planets;
-    // Dünya (merkez)
+  
     planets.push_back({0.0f, 0.0f, 0.2f, 1.0f, glm::vec3(0.5,0.5,1.0), &texEarth, -1, 0.0f}); // Dünya
     planets.push_back({2.0f, 0.7f, 0.5f, 0.27f, glm::vec3(0.8,0.8,0.8), &texMoon, 0, 0.0f}); // Ay
     planets.push_back({0.6f, 2.0f, 1.0f, 0.1f, glm::vec3(1.0,0.7,0.7), &texMoonMoon, 1, 0.0f}); // Ayın Ayı
@@ -220,16 +218,14 @@ int main(int argc, const char* argv[])
 
     float time = 0.0f;
 
-    // =============== //
-    //   RENDER LOOP   //
-    // =============== //
-    int lastMode = state.mode; // Son kullanılan kamera modu
+    // renderloop
+    int lastMode = state.mode;
     while(!glfwWindowShouldClose(state.window))
     {
         glfwPollEvents();
         glViewport(0, 0, state.width, state.height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // FPS modunda sürekli hareket
+        // FPS modu
         if(state.mode == 3) {
             glm::vec3 forward = glm::normalize(state.gaze - state.pos);
             glm::vec3 right = glm::normalize(glm::cross(forward, state.up));
@@ -251,12 +247,12 @@ int main(int argc, const char* argv[])
                 state.gaze += right * speed;
             }
         }
-        // Zamanı güncelle (timeSpeed ile çarpılır)
-        time += 0.016f * timeSpeed; // ~60 FPS için sabit artış
+        
+        time += 0.016f * timeSpeed;
 
         float cam_dist = 5.0f;
 
-        // Her gezegenin gerçek pozisyonunu hesapla
+        // planet position hesapla
         std::vector<glm::vec3> planetPositions(planets.size());
         for(size_t i=0; i<planets.size(); ++i) {
             const Planet& planet = planets[i];
@@ -269,7 +265,7 @@ int main(int argc, const char* argv[])
             }
         }
 
-        // Uniform konumları (doğrudan shader program id'si ile alınmalı) -- SADECE BİR KEZ TANIMLANIR
+        
         static GLint locModel = glGetUniformLocation(vShader.shaderId, "uModel");
         static GLint locView = glGetUniformLocation(vShader.shaderId, "uView");
         static GLint locProj = glGetUniformLocation(vShader.shaderId, "uProjection");
@@ -277,51 +273,49 @@ int main(int argc, const char* argv[])
         static GLint locMode = glGetUniformLocation(fShader.shaderId, "uMode");
         static GLint locLightDir = glGetUniformLocation(fShader.shaderId, "uLightDir");
         static GLint locViewDir = glGetUniformLocation(fShader.shaderId, "uViewDir");
-        // Shadow mapping uniform locations
+        
         static GLint locShadowMap = glGetUniformLocation(fShader.shaderId, "uShadowMap");
         static GLint locLightVP = glGetUniformLocation(fShader.shaderId, "uLightVP");
         static GLint locShadowBias = glGetUniformLocation(fShader.shaderId, "uShadowBias");
-        // Shadow shader uniform locations
+       
         static GLint locShadowModel = glGetUniformLocation(shadowVShader.shaderId, "uModel");
         static GLint locShadowView = glGetUniformLocation(shadowVShader.shaderId, "uView");
         static GLint locShadowProj = glGetUniformLocation(shadowVShader.shaderId, "uProjection");
         static constexpr GLuint T_ALBEDO = 0;
 
-        // --- DİNAMİK LIGHT DIRECTION ---
-        float sunOrbitSpeed = 0.2f; // yavaş dönsün
+      
+        float sunOrbitSpeed = 0.2f; 
         float sunAngle = time * sunOrbitSpeed;
-        // Y=0 ile ışık yatay gelir, gölge ortada olur
+      
         glm::vec3 lightDir = glm::normalize(glm::vec3(cos(sunAngle), 0.0f, sin(sunAngle)));
 
-        // ===================== //
-        //     SHADOW PASS       //
-        // ===================== //
-        // Light view matrix: looking from sun direction
+      
+        // SHADOW PASS      
+        
         glm::vec3 lightForward = -glm::normalize(lightDir);
         glm::vec3 lightUp = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 lightRight = glm::normalize(glm::cross(lightForward, lightUp));
         lightUp = glm::normalize(glm::cross(lightRight, lightForward));
         
-        // Ortho projection that covers the scene
-        float orthoSize = 10.0f; // Sahneyi kapsayacak kadar büyük
+       
+        float orthoSize = 10.0f; 
         glm::mat4 lightProj = glm::ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, -50.0f, 50.0f);
         glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f), lightForward, lightUp);
         glm::mat4 lightVP = lightProj * lightView;
         
-        // Render to shadow FBO
+     
         glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
         glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Clear with large value (far)
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         
-        // Use shadow pipeline
+       
         glBindProgramPipeline(shadowPipeline);
         glUseProgramStages(shadowPipeline, GL_VERTEX_SHADER_BIT, shadowVShader.shaderId);
         glUseProgramStages(shadowPipeline, GL_FRAGMENT_SHADER_BIT, shadowFShader.shaderId);
         
-        // Render planets to shadow map
         for(size_t i=0; i<planets.size(); ++i) {
             const Planet& planet = planets[i];
             glm::vec3 pos = planetPositions[i];
@@ -339,20 +333,18 @@ int main(int argc, const char* argv[])
             glDrawElements(GL_TRIANGLES, sphereMesh.indexCount, GL_UNSIGNED_INT, nullptr);
         }
         
-        // Switch back to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindProgramPipeline(state.renderPipeline);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glViewport(0, 0, state.width, state.height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 1. BACKGROUND STARS SPHERE (kamera merkezli, her zaman en arkada)
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
-        glDisable(GL_CULL_FACE); // İçeriden bakıyoruz, cull face kapalı olmalı
+        glDisable(GL_CULL_FACE); 
         {
             float bgRadius = 50.0f;
-            // Kamera merkezine yerleştir (sadece rotation etkili olsun)
+            
             glm::mat4 bgModel = glm::translate(glm::mat4(1.0f), state.pos) * glm::scale(glm::mat4(1.0f), glm::vec3(bgRadius));
             glm::mat3 bgNormal = glm::inverseTranspose(glm::mat3(bgModel));
             glm::mat4x4 bgProj = glm::perspective(glm::radians(50.0f),
@@ -372,50 +364,24 @@ int main(int argc, const char* argv[])
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, texStars.textureId);
             glBindSampler(0, samplerLinear);
-            glUniform1ui(locMode, 3); // Sadece texture
+            glUniform1ui(locMode, 3); 
             glBindVertexArray(sphereMesh.vaoId);
             glDrawElements(GL_TRIANGLES, sphereMesh.indexCount, GL_UNSIGNED_INT, nullptr);
         }
         glEnable(GL_CULL_FACE);
-        // 2. SUN SPHERE (kameraya göre, ışık yönünün tersine uzakta)
-        {
-            float sunDist = 80.0f;  // Kameradan uzaklık
-            float sunRadius = 0.8f; // Küçük küre
-            // Güneş kamera pozisyonundan, ışık yönünün tersine doğru uzakta
-            glm::vec3 sunPos = state.pos - glm::normalize(lightDir) * sunDist;
-            glm::mat4 sunModel = glm::translate(glm::mat4(1.0f), sunPos) * glm::scale(glm::mat4(1.0f), glm::vec3(sunRadius));
-            glm::mat3 sunNormal = glm::inverseTranspose(glm::mat3(sunModel));
-            glm::mat4x4 sunProj = glm::perspective(glm::radians(50.0f),
-                                            float(state.width) / float(state.height),
-                                            0.01f, 200.0f);
-            glm::mat4x4 sunView = glm::lookAt(state.pos, state.gaze, state.up);
-            // Vertex shader
-            glUseProgramStages(state.renderPipeline, GL_VERTEX_SHADER_BIT, vShader.shaderId);
-            glActiveShaderProgram(state.renderPipeline, vShader.shaderId);
-            glUniformMatrix4fv(locModel, 1, false, glm::value_ptr(sunModel));
-            glUniformMatrix4fv(locView, 1, false, glm::value_ptr(sunView));
-            glUniformMatrix4fv(locProj, 1, false, glm::value_ptr(sunProj));
-            glUniformMatrix3fv(locNormal, 1, false, glm::value_ptr(sunNormal));
-            // Fragment shader
-            glUseProgramStages(state.renderPipeline, GL_FRAGMENT_SHADER_BIT, fShader.shaderId);
-            glActiveShaderProgram(state.renderPipeline, fShader.shaderId);
-            glUniform1ui(locMode, 12); // Sun rendering mode (shader'da saf sarı)
-            glBindVertexArray(sphereMesh.vaoId);
-            glDrawElements(GL_TRIANGLES, sphereMesh.indexCount, GL_UNSIGNED_INT, nullptr);
-        }
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
-        // Kamera moduna göre pozisyon ve bakış noktası ayarla
+       
         if (state.mode >= 0 && state.mode <= 2) {
             glm::vec3 target = planetPositions[state.mode];
             if (lastMode != state.mode) {
-                cameraOffset = glm::vec3(0.0f, 2.5f, 5.0f); // Mod değişince offset'i sıfırla
+                cameraOffset = glm::vec3(0.0f, 2.5f, 5.0f); 
             }
             state.pos = target + cameraOffset;
             state.gaze = target;
-            // Mouse hareketleriyle state.pos ve state.gaze değiştirilebilir!
+           
         } else if (state.mode == 3) {
-            // FPS modunda mouse ile hareket zaten aktif
+            // FPS mod
         }
         lastMode = state.mode;
 

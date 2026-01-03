@@ -130,7 +130,7 @@ void main(void)
 			vec3 nightLights = texture(uNightMap, fUV).rgb; // RGB for colored city lights
 			
 			// Specular power interpolation: water has high specularity, ground has low
-			float waterSpec = 60.0;
+			float waterSpec = 40.0;
 			float groundSpec = 25.0;
 			float specPower = mix(groundSpec, waterSpec, specMap);
 			
